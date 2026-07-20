@@ -1,4 +1,4 @@
-
+require('../database/index.js')
 
 const trackOrder = (request, response) => {
     console.log("inside function trackOrder ")
