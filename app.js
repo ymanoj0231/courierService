@@ -6,7 +6,7 @@ const mongooseConnection = require('./database/index.js')
 const logger = require("logger")
 
 app.use(express.json())
-app.use(routes)
+app.use("/api/v1/orders", routes)
 
 async function startServer() {
     await mongooseConnection()
@@ -16,4 +16,5 @@ async function startServer() {
 }
 
 startServer()
+
 

@@ -8,19 +8,8 @@ const logger = createLogger({
             format: "YYYY-MM-DD HH:mm:ss",
         }),
         errors({ stack: true }),
-        printf(({ timestamp, level, message, stack, ...meta }) => {
-            const log = {
-                timestamp,
-                level: level.toUpperCase(),
-                message,
-                ...meta,
-            };
-
-            if (stack) {
-                log.stack = stack;
-            }
-
-            return JSON.stringify(log);
+        printf(({ timestamp, level, message, ...meta }) => {
+            return `${timestamp} ${level.toUpperCase()} ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ""}`;
         })
     ),
 
