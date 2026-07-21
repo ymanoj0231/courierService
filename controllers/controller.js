@@ -1,21 +1,22 @@
 require('../database/index.js')
+const logger = require('logger')
 
 const trackOrder = (request, response) => {
-    console.log("inside function trackOrder ")
+    logger.info("inside trackOrder")
 }
 
 const cancelOrder = (request, response) => {
-    console.log("inside function cancelOrder ")
+    logger.info("inside function cancelOrder ")
 
 }
 
 const placeOrder = (request, response) => {
-    console.log("inside function placeOrder ")
+    logger.info("inside function placeOrder ")
 
 }
 
 const bulkOrderUpdate = (request, response) => {
-    console.log("inside function bulkUpdate ")
+    logger.info("inside function bulkUpdate ")
 
 }
 

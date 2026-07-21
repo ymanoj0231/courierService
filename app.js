@@ -1,10 +1,12 @@
 const express = require('express');
 const app = express()
 const routes = require("./routes/router.js")
+const env = require('./config/env')
 
 app.use(express.json())
 app.use(routes)
 
-app.listen(4000, () => {
-    console.log("server started on port 4000")
+
+app.listen(env.PORT, () => {
+    console.log(`server started on port ${env.PORT}`)
 })

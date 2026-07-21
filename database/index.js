@@ -1,9 +1,11 @@
 const mongoose = require("mongoose");
+const config = require("../config/env.js")
 
 async function connect() {
     try {
         console.log("connecting to mongodb")
-        await mongoose.connect(`mongodb+srv://courierServiceUser01:${encodeURIComponent("Passw0rd@1234")}@cluster02.kctdri9.mongodb.net/?appName=Cluster02`)
+        const { database: { user, password, clusterName } = {} } = config
+        await mongoose.connect(`mongodb+srv://${user}:${encodeURIComponent(password)}@${clusterName}.kctdri9.mongodb.net/?appName=Cluster02`)
         console.log("connection successful");
     } catch (error) {
         console.log("error connecting mongodb", error)
