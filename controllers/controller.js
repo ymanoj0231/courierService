@@ -1,4 +1,3 @@
-require('../database/index.js')
 const logger = require('logger')
 
 const trackOrder = (request, response) => {
