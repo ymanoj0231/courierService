@@ -35,7 +35,7 @@ const buildServicePayload = (reqBody) => {
             servicePayload = {
                 "customerCode": customerCode,
                 "courier_partner": courier_partner,
-                "orderNumber": "PTR1234567800",
+                "orderNumber": orderId,
                 "declaredValue": invoiceValue,
                 "itemDescription": itemDescription,
                 "collectableValue": invoiceValue,

@@ -11,6 +11,7 @@ let accessToken = null;
  * Authenticate with urbanebolt
  */
 async function authenticate() {
+    logger.info(moduleNameForLogging + " authenticate");
 
     const response = await request({
         method: "POST",
@@ -27,7 +28,7 @@ async function authenticate() {
 
     accessToken = response.body.token;
 
-    logger.info(moduleNameForLogging + "urbanebolt authenticated");
+    logger.info(moduleNameForLogging + " authenticated");
 
     return accessToken;
 }
@@ -36,6 +37,7 @@ async function authenticate() {
  * Returns auth headers
  */
 async function getHeaders() {
+    logger.info(moduleNameForLogging + " getHeaders");
 
     if (!accessToken) {
         await authenticate();
@@ -95,23 +97,17 @@ async function execute(requestOptions) {
  * Create Shipment
  */
 async function createOrder(order) {
-    logger.info(moduleNameForLogging + "urbanebolt createOrder response ", order)
+    logger.info(moduleNameForLogging + " createOrder request ", order)
 
     const response = await execute({
         method: "POST",
-        url: `${BASE_URL}/orders`,
+        url: `${BASE_URL}/services/manifest`,
         body: [order],
     });
 
-    logger.info("urbanebolt createOrder response ", response)
+    logger.info(moduleNameForLogging + " createOrder response ", response)
 
-    console.log("===response===", response)
-    return {
-        courierOrderId: response.order_id,
-        awbNumber: response.awb_number,
-        status: response.status,
-        rawResponse: response.body,
-    };
+    return response;
 }
 
 /**
@@ -121,13 +117,10 @@ async function trackOrder(order) {
 
     const response = await execute({
         method: "GET",
-        url: `${BASE_URL}/orders/${order.courierOrderId}/track`,
+        url: `${BASE_URL}services/tracking-pub/?awb=${order.awbNumber}`,
     });
 
-    return {
-        status: response.status,
-        rawPayload: response,
-    };
+    return response;
 }
 
 /**
@@ -137,17 +130,25 @@ async function cancelOrder(order) {
 
     const response = await execute({
         method: "POST",
-        url: `${BASE_URL}/orders/${order.courierOrderId}/cancel`,
+        url: `${BASE_URL}/services/cancel/`,
+        body: { "awbs": order.awbNumber }
     });
 
-    return {
-        status: response.status,
-        rawPayload: response,
-    };
+    return response
+}
+
+async function validatePincodes(pincodes) {
+    const response = await execute({
+        method: "GET",
+        url: `${BASE_URL}/location/pincodes/?pincodes=${pincodes.join(",")}`,
+    });
+
+    return response
 }
 
 module.exports = {
     createOrder,
     trackOrder,
     cancelOrder,
+    validatePincodes,
 };
