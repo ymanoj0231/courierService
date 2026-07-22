@@ -6,11 +6,34 @@ const trackingHistory = require("../database/schemas/trackingHistory.js")
 
 const trackOrder = async (request, response) => {
     logger.info("inside trackOrder")
+    const orderId = request.params.orderId;;
+    try {
+        const existingOrder = await orderSchema.findOne({ orderId })
+        if (!existingOrder) {
+            logger.info(`OrderId ${orderId} NOT found`)
+            return response.status(404).send({ message: `OrderId ${orderId} NOT found` })
+        }
+        const { status, courier_partner, awbNumber } = existingOrder
+
+        const courierPartner = getCourier(courier_partner)
+        const courierResponse = await courierPartner.trackOrder({ orderId, awbNumber })
+
+        const { body: { data: { scans: histories = [] } = {} } = {} } = courierResponse
+        const tracking = histories.map(({ statusCodeDescription: desc, statusDateTime: time }) => { return { status: desc === "Shipment Manifested" ? "CREATED" : desc.toUpperCase(), time } })
+        return response.status(200).send({
+            currentStatus: status,
+            tracking
+        })
+
+    } catch (error) {
+        logger.error(`Error getting tracking info of orderId ${orderId} `, error.message || error)
+        return response.status(400).send({ message: `Error getting tracking info of orderId ${orderId}` })
+    }
 }
 
 const cancelOrder = async (request, response) => {
     logger.info("inside function cancelOrder ")
-    var courierPartner, courierResponse
+    var courierResponse
     const orderId = request.params.orderId;
     try {
         const existingOrder = await orderSchema.findOne({ orderId })
@@ -26,7 +49,7 @@ const cancelOrder = async (request, response) => {
         }
 
         try {
-            courierPartner = getCourier(courier_partner)
+            const courierPartner = getCourier(courier_partner)
             courierResponse = await courierPartner.cancelOrder({ orderId, awbNumber })
 
         } catch (error) {
@@ -85,27 +108,24 @@ const placeOrder = async (request, response) => {
         }
 
         //check if the given addresses(pincodes) are valid or not
-        try {
-            const pincodePiResponse = await courierPartner.validatePincodes([customer.address.pincode, shipping.address.pincode])
-
-        } catch (error) {
-            logger.error("Invalid customer address or shipping address ", error.message || error)
+        const { body = {} } = await courierPartner.validatePincodes([customer.address.pincode, shipping.address.pincode])
+        if (body.errorPincodes.length) {
+            logger.error("Invalid customer address or shipping address ")
             return response.status(400).send({ message: `Invalid customer address or shipping address` })
         }
 
         //create order in courier service
-        try {
-            courierRequest = helpers.buildServicePayload(request.body)
-            courierResponse = await courierPartner.createOrder(courierRequest)
+        courierRequest = helpers.buildServicePayload(request.body)
+        courierResponse = await courierPartner.createOrder(courierRequest)
+        const { successResponse: [{ awbNumber }], errorResponse = [] } = courierResponse.body
 
-        } catch (error) {
-            logger.error("Error creating shipment ", error.message || error)
-            return response.status(error.statusCode || 500).send({ message: `Error creating shipMent with partner ${courierPartnerName}` })
+        if (errorResponse.length) {
+            logger.error("Error creating shipment ", courierResponse.body.errorResponse)
+            return response.status(courierResponse.statusCode || 500).send({ message: `Error creating shipMent with partner ${courierPartnerName}` })
 
         }
 
         try {
-            const { status, successResponse: [{ awbNumber }], errorResponse } = courierResponse
             const timestamp = new Date().getTime()
 
             await Promise.all([
@@ -113,7 +133,7 @@ const placeOrder = async (request, response) => {
                 orderSchema.create({
                     ...request.body,
                     awbNumber: awbNumber,
-                    courierOrderId: awbNumber,
+                    courierOrderId: orderId,
                     status: "CREATED",
                     courierRequest,
                     courierResponse,

@@ -31,7 +31,7 @@ const buildServicePayload = (reqBody) => {
     } = reqBody
 
     switch (courier_partner) {
-        case "urbanebolt":
+        case "urbaneBolt":
             servicePayload = {
                 "customerCode": customerCode,
                 "courier_partner": courier_partner,

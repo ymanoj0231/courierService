@@ -5,10 +5,10 @@ module.exports = {
         password: "Passw0rd@1234",
         clusterName: "cluster02"
     },
-    urbanebolt: {
+    urbaneBolt: {
         baseUrl: "https://uat.urbanebolt.in/api/v1",
         username: "info@urbanebolt.com",
         password: "EKIcygsLVV5RCtPZ",
-        cookie: "csrftoken=SuZfjeJQJQNlDaNxRJgaMqylRWlqogsL"
+        cookie: "csrftoken=07ODj8m0xpqvnWpWJ34TvnZWAW8XtiDy; sessionid=1xqn6joxdj112wehtoiomyfwhwodthio"
     }
 }

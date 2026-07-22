@@ -1,59 +1,51 @@
 const logger = require("logger");
 const { request } = require("./httpApi.js");
 const config = require("../../config/env")
-const moduleNameForLogging = "[urbanebolt] "
+const moduleNameForLogging = "[urbaneBolt] "
 
-const BASE_URL = config.urbanebolt.baseUrl;
+const BASE_URL = config.urbaneBolt.baseUrl;
+let accessToken = null
 
-let accessToken = null;
-
-/**
- * Authenticate with urbanebolt
- */
 async function authenticate() {
-    logger.info(moduleNameForLogging + " authenticate");
+    logger.info(`${moduleNameForLogging} authenticate request`);
 
     const response = await request({
         method: "POST",
-        url: `${BASE_URL}/auth/getToken`,
+        url: `${BASE_URL}/auth/getToken/`,
+        headers: {
+            "Content-Type": "application/json",
+            "Cookie": config.urbaneBolt.cookie
+        },
         body: {
-            username: config.urbanebolt.username,
-            password: config.urbanebolt.password,
+            username: config.urbaneBolt.username,
+            password: config.urbaneBolt.password,
         },
     });
 
     if (response.status >= 400) {
-        throw new Error("urbanebolt authentication failed");
+        throw new Error("urbaneBolt authentication failed");
     }
 
-    accessToken = response.body.token;
-
-    logger.info(moduleNameForLogging + " authenticated");
-
+    accessToken = response.body.access_token;
+    logger.info(`${moduleNameForLogging} authenticate response`, accessToken);
     return accessToken;
 }
 
-/**
- * Returns auth headers
- */
 async function getHeaders() {
-    logger.info(moduleNameForLogging + " getHeaders");
+    logger.info(`${moduleNameForLogging} getHeaders`);
 
     if (!accessToken) {
         await authenticate();
     }
 
     return {
-        Authorization: `Bearer ${accessToken}`,
+        "Authorization": `Bearer ${accessToken}`,
         "Content-Type": "application/json",
-        "Cookie": config.urbanebolt.cookie
+        "Cookie": config.urbaneBolt.cookie
     };
 }
 
-/**
- * Executes request.
- * If token expired, re-authenticates once.
- */
+// Executes request. If token expired, re-authenticates once.
 async function execute(requestOptions) {
 
     let response = await request({
@@ -65,7 +57,7 @@ async function execute(requestOptions) {
 
     if (response.status === 401) {
 
-        logger.info("Refreshing urbanebolt token");
+        logger.info("Refreshing urbaneBolt token");
 
         await authenticate();
 
@@ -80,70 +72,75 @@ async function execute(requestOptions) {
 
     if (response.status >= 400) {
 
-        logger.error("urbanebolt API Error", {
-            status: response.status,
-            response: response.body,
+        logger.error("urbaneBolt API Error", {
+            statusCode: response.statusCode,
+            body: response.body,
         });
 
         throw new Error(
-            response.body?.message || "urbanebolt request failed"
+            response.body?.message || "urbaneBolt request failed"
         );
     }
 
-    return response.body;
+    return response;
 }
 
-/**
- * Create Shipment
- */
 async function createOrder(order) {
-    logger.info(moduleNameForLogging + " createOrder request ", order)
-
+    logger.info(`${moduleNameForLogging} createOrder request body`, order)
     const response = await execute({
         method: "POST",
-        url: `${BASE_URL}/services/manifest`,
+        url: `${BASE_URL}/services/manifest/`,
         body: [order],
     });
 
     logger.info(moduleNameForLogging + " createOrder response ", response)
 
-    return response;
+    return {
+        statusCode: response.statusCode,
+        body: response.body
+    };
 }
 
-/**
- * Track Shipment
- */
 async function trackOrder(order) {
-
+    logger.info(`${moduleNameForLogging} trackOrder request body`, order)
     const response = await execute({
         method: "GET",
-        url: `${BASE_URL}services/tracking-pub/?awb=${order.awbNumber}`,
+        url: `${BASE_URL}/services/tracking-pub/?awb=${order.awbNumber}`,
     });
-
-    return response;
+    logger.info(`${moduleNameForLogging} trackOrder response `, response)
+    return {
+        statusCode: response.statusCode,
+        body: response.body
+    };
 }
 
-/**
- * Cancel Shipment
- */
 async function cancelOrder(order) {
-
+    logger.info(`${moduleNameForLogging} cnacelOrder request body`, order)
     const response = await execute({
         method: "POST",
         url: `${BASE_URL}/services/cancel/`,
         body: { "awbs": order.awbNumber }
     });
+    logger.info(`${moduleNameForLogging} cancelOrder response `, response)
 
-    return response
+    return {
+        statusCode: response.statusCode,
+        body: response.body
+    }
 }
 
 async function validatePincodes(pincodes) {
+    logger.info(`${moduleNameForLogging} validatePincodes request body`, pincodes)
     const response = await execute({
         method: "GET",
         url: `${BASE_URL}/location/pincodes/?pincodes=${pincodes.join(",")}`,
     });
+    logger.info(`${moduleNameForLogging} validatePincodes response `, response)
 
-    return response
+    return {
+        statusCode: response.statusCode,
+        body: response.body
+    }
 }
 
 module.exports = {

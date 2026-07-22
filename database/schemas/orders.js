@@ -61,7 +61,7 @@ const Orders = new mongoose.Schema({
     courier_partner: {
         type: String,
         required: true,
-        enum: ["urbanebolt", "mock"],
+        enum: ["urbaneBolt", "mock"],
     },
     courierOrderId: {
         type: String,
