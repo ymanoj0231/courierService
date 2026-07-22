@@ -70,7 +70,7 @@ const Orders = new mongoose.Schema({
 
     awbNumber: {
         type: String,
-        default: null,
+        required: true,
         index: true,
     },
     status: {
@@ -98,6 +98,14 @@ const Orders = new mongoose.Schema({
     },
     quantity: {
         type: Number
+    },
+    courierRequest: {
+        type: Object,
+        required: true
+    },
+    courierResponse: {
+        type: Object,
+        required: true
     },
     createdAt: {
         type: Number,
