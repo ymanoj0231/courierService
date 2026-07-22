@@ -1,4 +1,4 @@
-
+const courierPartners = ["urbaneBolt", "mock"]
 
 const buildServicePayload = (reqBody) => {
     var servicePayload = {};
@@ -80,24 +80,61 @@ const buildServicePayload = (reqBody) => {
             }
             break;
         case "mock":
-            servicePayload = {}
+            servicePayload = {
+                "customerCode": customerCode,
+                "courier_partner": courier_partner,
+                "orderNumber": orderId,
+                "declaredValue": invoiceValue,
+                "itemDescription": itemDescription,
+                "collectableValue": invoiceValue,
+                "height": 10,
+                "length": 12,
+                "pieces": quantity,
+                "weight": 1.1,
+                "breadth": 10,
+                "serviceType": "SDD",
+                "payMode": paymentMode,
+                "rtnCity": customerAddress.city,
+                "rtnName": customerName,
+                "consCity": shippingAddress.city,
+                "consName": recipientName,
+                "rtnEmail": customerEmail,
+                "rtnState": customerAddress.state,
+                "shprCity": customerAddress.city,
+                "shprName": customerName,
+                "consEmail": recipientEmail,
+                "consState": shippingAddress.state,
+                "rtnMobile": customerMobile,
+                "shprEmail": customerEmail,
+                "shprState": customerAddress.state,
+                "consMobile": recipientMobile,
+                "rtnAddress": customerAddress.address,
+                "rtnAddressType": "Seller",
+                "rtnCountry": "INDIA",
+                "rtnPincode": customerAddress.pincode,
+                "shprMobile": customerMobile,
+                "consAddress": shippingAddress.address,
+                "consAddressType": "Home",
+                "consCountry": "INDIA",
+                "consPincode": shippingAddress.pincode,
+                "invoiceNumber": invoiceNumber,
+                "invoiceDate": invoiceDate,
+                "shprAddress": customerAddress.address,
+                "shprAddressType": "Seller",
+                "shprCountry": "INDIA",
+                "shprPincode": customerAddress.pincode,
+                "invoiceValue": invoiceValue,
+                "itemQuantity": quantity
+            }
             break;
         default:
             break;
     }
-    console.log("===courier===", courier_partner)
-
     return servicePayload
 }
 
-// const buildDBPayload = (reqBody, courierResponse) => {
-//     const { awbNumber } = courierResponse
 
-//     return {
-//         ...reqBody,
-//         awbNumber
-//     }
-// }
 module.exports = {
+    courierPartners,
     buildServicePayload
 }

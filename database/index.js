@@ -9,7 +9,7 @@ async function mongooseConnection() {
         await mongoose.connect(`mongodb+srv://${user}:${encodeURIComponent(password)}@${clusterName}.kctdri9.mongodb.net/?appName=Cluster02`)
         logger.info("MongoDB connection successful");
     } catch (error) {
-        console.log("error connecting mongodb", error)
+        logger.error("error connecting mongodb", error)
         throw error
     }
 

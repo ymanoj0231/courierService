@@ -1,4 +1,5 @@
 const logger = require('logger')
+const _ = require('lodash')
 const helpers = require('../helpers')
 const { getCourier } = require('../services/courierPartnerHandler.js')
 const orderSchema = require("../database/schemas/orders.js")
@@ -104,7 +105,6 @@ const placeOrder = async (request, response) => {
         } catch (error) {
             logger.error("Error placing order ", error.message || error)
             return response.status(400).send({ message: `Invalid courier partner ${courierPartnerName}` })
-
         }
 
         //check if the given addresses(pincodes) are valid or not
@@ -122,7 +122,6 @@ const placeOrder = async (request, response) => {
         if (errorResponse.length) {
             logger.error("Error creating shipment ", courierResponse.body.errorResponse)
             return response.status(courierResponse.statusCode || 500).send({ message: `Error creating shipMent with partner ${courierPartnerName}` })
-
         }
 
         try {
@@ -163,14 +162,88 @@ const placeOrder = async (request, response) => {
 
 }
 
-const bulkOrderUpdate = async (request, response) => {
-    logger.info("inside function bulkUpdate ")
+const bulkOrderCreate = async (request, response) => {
+    logger.info("inside function bulkUpdate ", request.body)
+    var ordersToBeProcessed, successOrders = [], failedOrders = [], dbPromises = [];
+    const reqBody = request.body
 
+    if (reqBody.length > 100) {
+        return response.status(400).send({ "message": "Can't process more than 100 records at a time." })
+    }
+
+    const orderIds = _getOrderIds(reqBody)
+    const existingOrders = await orderSchema.find({ orderId: { $in: orderIds } }, { _id: 0, orderId: 1 })
+    const existingOrderIds = _getOrderIds(existingOrders)
+    //orders with invalid courier_partner
+    const invalidOrders = reqBody.filter(order => { return !helpers.courierPartners.includes(order.courier_partner) })
+    const invalidOrderIds = _getOrderIds(invalidOrders)
+
+    if ([...existingOrderIds, ...invalidOrderIds].length) {
+        // filterOut the orders that are already existing or with invalid courierPartner
+        ordersToBeProcessed = reqBody.filter(i => { return !([...existingOrderIds, ...invalidOrderIds].includes(i.orderId)) })
+
+    } else {
+        ordersToBeProcessed = reqBody
+    }
+
+    //create bulk order in courier
+    const courierRequests = ordersToBeProcessed.map(order => {
+        const courierRequest = helpers.buildServicePayload(order)
+        return getCourier(order.courier_partner).createOrder(courierRequest)
+
+    })
+    const courierResponses = await Promise.allSettled(courierRequests)
+
+    for (let i = 0; i < courierResponses.length; i++) {
+
+        const { orderId, } = ordersToBeProcessed[i]
+        const timestamp = new Date().getTime()
+
+        if (courierResponses[i].status === "rejected") {
+            failedOrders.push({ orderId, failureReason: courierResponses[i].reason })
+        } else {
+            const { body: { successResponse: [{ awbNumber } = {}] = [], errorResponse = [] } = {} } = courierResponses[i].value
+            //if errrorResponse, push to failed orders
+            if (errorResponse.length) {
+                failedOrders.push({ orderId, failureReason: errorResponse[0] })
+                continue;
+            }
+
+            const courierRequest = helpers.buildServicePayload(ordersToBeProcessed[i])
+            successOrders.push(orderId)
+            dbPromises.push(...[
+                //create order 
+                orderSchema.create({
+                    ...ordersToBeProcessed[i],
+                    awbNumber,
+                    courierOrderId: orderId,
+                    status: "CREATED",
+                    courierRequest,
+                    courierResponse: courierResponses[i].value,
+                    createdAt: timestamp,
+                    updatedAt: timestamp
+                }),
+                // create tracking history
+                trackingHistory.create({
+                    orderId,
+                    status: "CREATED",
+                    courierRequest,
+                    courierResponse: courierResponses[i].value,
+                    createdAt: timestamp
+                })])
+        }
+    }
+    await Promise.allSettled(dbPromises)
+    response.status(200).send({ batchId: "12345", successOrders, existingOrders: existingOrderIds, invalidOrders: invalidOrderIds, failedOrders })
+}
+
+function _getOrderIds(arr) {
+    return arr.map((order) => { return order.orderId })
 }
 
 module.exports = {
     trackOrder,
     cancelOrder,
     placeOrder,
-    bulkOrderUpdate
+    bulkOrderCreate
 }
