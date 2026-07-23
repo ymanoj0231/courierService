@@ -1,5 +1,5 @@
 const logger = require('logger')
-const _ = require('lodash')
+const { v4: uuid } = require("uuid")
 const helpers = require('../helpers')
 const { getCourier } = require('../services/courierPartnerHandler.js')
 const orderSchema = require("../database/schemas/orders.js")
@@ -165,7 +165,7 @@ const placeOrder = async (request, response) => {
 const bulkOrderCreate = async (request, response) => {
     logger.info("inside function bulkUpdate ", request.body)
     var ordersToBeProcessed, successOrders = [], failedOrders = [], dbPromises = [];
-    const reqBody = request.body
+    const reqBody = request.body, batchId = uuid();
 
     if (reqBody.length > 100) {
         return response.status(400).send({ "message": "Can't process more than 100 records at a time." })
@@ -215,6 +215,7 @@ const bulkOrderCreate = async (request, response) => {
                 //create order 
                 orderSchema.create({
                     ...ordersToBeProcessed[i],
+                    batchId,
                     awbNumber,
                     courierOrderId: orderId,
                     status: "CREATED",
@@ -234,7 +235,7 @@ const bulkOrderCreate = async (request, response) => {
         }
     }
     await Promise.allSettled(dbPromises)
-    response.status(200).send({ batchId: "12345", successOrders, existingOrders: existingOrderIds, invalidOrders: invalidOrderIds, failedOrders })
+    response.status(200).send({ batchId, successOrders, existingOrders: existingOrderIds, invalidOrders: invalidOrderIds, failedOrders })
 }
 
 function _getOrderIds(arr) {

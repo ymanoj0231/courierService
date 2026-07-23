@@ -1,6 +1,6 @@
 
 const urbaneBolt = require("./courier1/index.js");
-const mock = require("./mock.js");
+const mock = require("./mockService/index.js");
 
 const courierPartners = {
     urbaneBolt,

@@ -15,6 +15,7 @@
     "logger": "file:./logger.js",
     "mongoose": "^9.7.4",
     "unirest": "^0.6.0",
+    "uuid": "^14.0.1",
     "winston": "^3.19.0"
   }
 }
