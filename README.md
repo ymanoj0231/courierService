@@ -8,7 +8,7 @@ bash
 ## installation
 1. clone the repository
 ```bash
-git clone 
+git clone git@github.com:ymanoj0231/courierService.git
 ```
 
 2. navigate to repository

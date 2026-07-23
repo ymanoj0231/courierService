@@ -4,16 +4,31 @@ async function trackOrder(order) {
             statusCode: 200,
             body: {
                 "status": "Success",
-                "successResponse": [
-                    {
-                        "status": "Success",
-                        "orderNumber": order.orderNumber,
-                        "awbNumber": 1234567890,
-                        "routeCode": "GGN/DLHH",
-                        "shippingLabel": "https://api.uat.urbanebolt.in/api/v1/services/print-label/?key=himPHMijuCAmot7VZq835VeCMum75BZACtvUGyIQzGY25LrwZvc5pNnW16Pj4RA5",
-                        "customerCode": "UEBCUS0008"
-                    }
-                ],
+                "data": {
+                    scans: [
+                        {
+                            "statusCodeDescription": "cancelled",
+                            "statusDateTime": "2026-07-23 05:08:30",
+                            "status": "Success",
+                            "orderNumber": order.orderNumber,
+                            "awbNumber": 1234567890,
+                            "routeCode": "GGN/DLHH",
+                            "shippingLabel": "https://api.uat.urbanebolt.in/api/v1/services/print-label/?key=himPHMijuCAmot7VZq835VeCMum75BZACtvUGyIQzGY25LrwZvc5pNnW16Pj4RA5",
+                            "customerCode": "UEBCUS0008"
+                        },
+                        {
+                            "statusCodeDescription": "Shipment Manifested",
+                            "statusDateTime": "2026-07-23 05:08:31",
+                            "status": "Success",
+                            "orderNumber": order.orderNumber,
+                            "awbNumber": 1234567890,
+                            "routeCode": "GGN/DLHH",
+                            "shippingLabel": "https://api.uat.urbanebolt.in/api/v1/services/print-label/?key=himPHMijuCAmot7VZq835VeCMum75BZACtvUGyIQzGY25LrwZvc5pNnW16Pj4RA5",
+                            "customerCode": "UEBCUS0008"
+                        }
+                    ],
+                },
+
                 "errorResponse": []
             }
         })
