@@ -1,25 +1,33 @@
-## Design
+## Features
+- Each courier services works independently.
+- Integrated urbaneBolt and mock courier services.
+- Each request is independent of courier specific payload.
 
--Each courier services works independently.
--Integrated urbaneBolt and mock courier services.
--Each request is independent of courier specific payload.
+## database design
 
-## Add a new courier service.
-1. Add a new folder under services folder. Expose createOrder, trackOrder, updateOrder functions.
-2. import service folder to /services/courierPartnerHandler.js file 
-3. Add courier_partner identifier in helpers.js to make it available at all places.
-4. Add switch case for new courier_partner under buildServicePayload function.
+# orders collection
+- stores request body from client along with batchId, awbNumber and courierOrderId from the from the psrtner's create order API.
+- batchId can be used to improve bulk update furthur.
+- currently urbaneBolt manifest api is returning the same orderId fron request. Hence storing orderId as courierOrderId.
+-For every every order create or update, timestamps are updated.
 
-NOTE : urbaneBolt courier service is listed as "courier1" under services folder due to some errors in my system.
+# trackingHistory collection.
+- Every action on an order will be recorded in this collection along with raw response from courier partner.
+- this collection can be used to get the tracking information of the order. Currently relying on Tracking api from urbaneBolt.
+- couldn't find any API to update the status of the order. As of now, able to achieve "shipment Manifested" and "Cancelled" status only from the given urbaneBolt APIs.
+
 
 ## Bulk order update
 
 # current implementation
-- No backgoround processing. It works as a multiple create order. But client will recieve once all the orders are processed.
+- No backgoround processing. It works as a create order with multiple orders. But client will recieve once all the orders are processed.
 
 # Improvements
 - Return batchId for the bulk order EP.
 - Process the orders in the back ground (Business logic remains same).
-- Expose a new EP to client to track the batchId.
+- Expose a new EP to client to track the batchId and results on orders.
+
+## other concerns
+
 
 
