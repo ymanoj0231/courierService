@@ -12,6 +12,7 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "helpers": "file:./helpers.js",
+    "lodash": "^4.18.1",
     "logger": "file:./logger.js",
     "mongoose": "^9.7.4",
     "unirest": "^0.6.0",
