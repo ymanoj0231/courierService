@@ -69,7 +69,6 @@ const Orders = new mongoose.Schema({
     },
     awbNumber: {
         type: String,
-        required: true,
         index: true,
     },
     batchId: {

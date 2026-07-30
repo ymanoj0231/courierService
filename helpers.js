@@ -1,5 +1,11 @@
 const courierPartners = ["urbaneBolt", "mock"]
 
+const sleep = (ms) => {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, ms)
+    })
+}
+
 const buildServicePayload = (reqBody) => {
     var servicePayload = {};
 
@@ -136,5 +142,6 @@ const buildServicePayload = (reqBody) => {
 
 module.exports = {
     courierPartners,
+    sleep,
     buildServicePayload
 }
